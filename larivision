@@ -1,0 +1,37 @@
+import numpy as np
+import cv2
+import os, time
+devid = 0
+count = 0
+
+
+if __name__ == '__main__':
+    try:
+        for path in os.listdir('/home/thispi/Project/Image/'):
+            if path.endswith(".jpg") and os.path.isfile(os.path.join('/home/thispi/Project/Image/',path)):
+                count+=1
+        
+        Cam1 = cv2.VideoCapture(devid)
+        #Cam1.open(devid, cv2.CAP_DSHOW)
+        while(True):
+            ret, frame = Cam1.read()
+            frame = cv2.resize(frame, None, fx=1.25, fy=0.83, interpolation=cv2.INTER_AREA)
+            cv2.imshow('FEED', frame)
+            
+            ipchk = cv2.waitKey(1) & 0xFF 
+            if ipchk == ord('i'):
+                if(cv2.imwrite('/home/thispi/Project/Image/capimg'+ str(count) +'.jpg', frame)):
+                    count +=1
+                    print('image saved')
+            elif ipchk == ord('q'):
+                break
+#            else:
+ #               print("ok")
+        Cam1.release()
+        cv2.destroyAllWindows()
+        print(count)
+
+            
+    except KeyboardInterrupt:
+        print("Keyboard interrupt recived")
+
