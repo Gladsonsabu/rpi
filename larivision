@@ -1,35 +1,83 @@
 import numpy as np
 import cv2
 import os, time
+TempVidPath = 'CapVed.avi'
+PWDir = ''
+IMDir = ''
+VDDir = ''
 devid = 0
-count = 0
+countIm = 0
+countVd = 0
+flagVidCap = False
 
 
 if __name__ == '__main__':
     try:
-        for path in os.listdir('/home/thispi/Project/Image/'):
-            if path.endswith(".jpg") and os.path.isfile(os.path.join('/home/thispi/Project/Image/',path)):
-                count+=1
+        time.sleep(1)
         
-        Cam1 = cv2.VideoCapture(devid)
+        PWDir = os.getcwd()                            # gets the parent of present working directory
+        print(PWDir)
+        IMDir = PWDir + "/Images"
+        VDDir = PWDir + "/VidCap"
+        TempVidPath = PWDir + '/VidCap/CapVed.avi'
+        if not os.path.exists(IMDir):          # Checks if Images Directory Exists
+            os.mkdir("Images")                                          # if not available the make the directory for images
+        if not os.path.exists(VDDir):          # Checks if Video Directory Exists
+            os.mkdir("VidCap")                                          # if not available the make the directory for Video
+        
+        for path in os.listdir(PWDir + "/Images/"):
+            if path.endswith(".jpg") and os.path.isfile(os.path.join(IMDir,path)):
+                countIm+=1
+                
+        for path in os.listdir(PWDir + "/VidCap/"):
+            if path.endswith(".avi") and os.path.isfile(os.path.join(VDDir,path)):
+                countVd+=1
+        
+        Cam1 = cv2.VideoCapture(devid)                                  # define camera object
+        
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        #fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
+        
         #Cam1.open(devid, cv2.CAP_DSHOW)
         while(True):
             ret, frame = Cam1.read()
-            frame = cv2.resize(frame, None, fx=1.25, fy=0.83, interpolation=cv2.INTER_AREA)
-            cv2.imshow('FEED', frame)
+            framedisplay = cv2.resize(frame, None, fx=1.25, fy=1.085, interpolation=cv2.INTER_AREA)
+            cv2.imshow('FEED', framedisplay)
+            
+            if flagVidCap == True:
+                #hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+                #vidstrout.write(hsv)
+                vidstrout.write(frame)
+            
+            
             
             ipchk = cv2.waitKey(1) & 0xFF 
             if ipchk == ord('i'):
-                if(cv2.imwrite('/home/thispi/Project/Image/capimg'+ str(count) +'.jpg', frame)):
-                    count +=1
+                if(cv2.imwrite(PWDir + '/Images/capimg'+ str(countIm) +'.jpg', frame)):
+                    countIm +=1
                     print('image saved')
+            elif ipchk == ord('v'):
+                if flagVidCap == False:
+                    vidstrout = cv2.VideoWriter(TempVidPath, fourcc, 20.0, (640,480))
+                    flagVidCap = True
+                    print('capturing vidio')
+                else:
+                    flagVidCap = False
+                    vidstrout.release()
+                    print('Stopping and flushing to disk')
+                    os.rename(VDDir+'/CapVed.avi',VDDir+'/Video'+str(countVd)+'.avi')
+                    countVd+=1
+                            #vidstrout = cv2.VideoWriter(TempVidPath, fourcc, 20.0, (640,480))
             elif ipchk == ord('q'):
+                print("Quitting.....")
                 break
 #            else:
- #               print("ok")
+#                print("ok")
+        
+        
         Cam1.release()
         cv2.destroyAllWindows()
-        print(count)
+        print("Exiting with return 0")
 
             
     except KeyboardInterrupt:
