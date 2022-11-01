@@ -1,0 +1,68 @@
+from multiprocessing import current_process
+import numpy as np
+import cv2
+import os, time
+vidpath = '/home/pi/Project/VidCap/capVed0.avi'
+PWDir = ''
+devid = 0
+countIm = 0
+countVd = 0
+flagVidCap = False
+
+
+if __name__ == '__main__':
+    try:
+        time.sleep(2)
+        
+        PWDir = os.path.dirname(os.getcwd())                            # gets the parent of present working directory
+        if not os.path.isdir(os.path.join(PWDir, "/Images")):           # Checks if Images Directory Exists
+            os.mkdir("Images")                                          # if not available the make the directory for images
+        elif not os.path.isdir(os.path.join(PWDir, "/VidCap")):         # Checks if Video Directory Exists
+            os.mkdir("VidCap")                                          # if not available the make the directory for Video
+        
+        for path in os.listdir(os.path.join(PWDir, "/Images")):
+            if path.endswith(".jpg") and os.path.isfile(os.path.join('/home/thispi/Project/Image/',path)):
+                countIm+=1
+        for path in os.listdir(os.path.join(PWDir, "/VidCap")):
+            if path.endswith(".avi") and os.path.isfile(os.path.join('/home/thispi/Project/VidCap/',path)):
+                countVd+=1
+        
+        Cam1 = cv2.VideoCapture(devid)                                  # define camera object
+        
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        vidstrout = cv2.VideoWriter(vidpath, fourcc, 20.0, (640,480))
+        
+        #Cam1.open(devid, cv2.CAP_DSHOW)
+        while(True):
+            ret, frame = Cam1.read()
+            frame = cv2.resize(frame, None, fx=1.25, fy=1.085, interpolation=cv2.INTER_AREA)
+            cv2.imshow('FEED', frame)
+            
+            if flagVidCap == True:
+                vidpath = '/home/pi/Project/VidCap/capVed'+ str(countVd) +'.avi'
+                vidstrout.write(cv2.cvtColor(frame. cv2.COLOR_BGR2HSV))
+            
+            ipchk = cv2.waitKey(1) & 0xFF 
+            if ipchk == ord('i'):
+                if(cv2.imwrite('/home/pi/Project/Images/capimg'+ str(countIm) +'.jpg', frame)):
+                    countIm +=1
+                    print('image saved')
+            elif ipchk == ord('v'):
+                if flagvidcap == False:
+                    flagvidcap = True
+                    print('capturing vidio')
+                else:
+                    flagvidcap = False
+                    print('Stopping and flushing to disk')
+            elif ipchk == ord('q'):
+                print("Quitting.....")
+                break
+#            else:
+#                print("ok")
+        Cam1.release()
+        cv2.destroyAllWindows()
+        print("Exiting with return 0")
+
+            
+    except KeyboardInterrupt:
+        print("Keyboard interrupt recived")
